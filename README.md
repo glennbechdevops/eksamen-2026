@@ -13,7 +13,7 @@ Din oppgave er å gjøre løsningen produksjonsklar: containerisere, deploye med
 
 ## Levering
 
-- Opprett et **nytt, offentlig** GitHub-repository (ikke fork). Kopier inn innholdet herfra.
+- Opprett et **nytt** GitHub-repository (ikke fork). Kopier inn innholdet herfra.
 - Besvar oppgavene i `README_SVAR.md` i ditt eget repo.
 - Lever repo-URL som PDF/TXT i Wiseflow.
 
