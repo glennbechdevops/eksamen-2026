@@ -1,4 +1,4 @@
-# PGR301 Eksamen 2026 — wishifai
+# PGR301 Eksamen 2026 — wishif.ai
 
 <img alt="Wishifai" src="media/wishifai_banner.png">
 
