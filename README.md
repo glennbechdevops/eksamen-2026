@@ -51,11 +51,13 @@ Leveranser: `Dockerfile`, `docker run …`-kommando sensor kan kjøre mot ditt p
 
 #### 1C — CI-pipeline
 
-Dere skal sette opp en GitHub Actions-workflow som bygger begge containerne og publiserer dem til **både ECR og Docker Hub**. ECR brukes senere i oppgave 2 når tjenesten skal kjøre på AWS; Docker Hub gjør det enkelt for sensor å trekke og teste imagene lokalt.
+Dere skal sette opp en GitHub Actions-workflow som bygger Wishifai Spring Boot-containeren og publiserer den til **både ECR og Docker Hub**. ECR brukes senere i oppgave 2 når tjenesten skal kjøre på AWS; Docker Hub gjør det enkelt for sensor å trekke og teste imaget lokalt.
+
+Workflowen skal **kun kjøre ved push til `main`**. Uploader-containeren fra 1A trenger ingen pipeline — den bygges lokalt ved behov.
 
 Dere velger selv en fornuftig tagging-strategi. `latest` alene er ikke tilstrekkelig — commit-SHA, versjon, eller tilsvarende må være med slik at det er mulig å spore hva som faktisk kjører hvor. Begrunn valget kort i `README_SVAR.md`.
 
-ECR-repoene kan opprettes manuelt. Secrets skal ligge som GitHub Secrets, ikke i workflow-filen.
+ECR-repoet kan opprettes manuelt. Secrets skal ligge som GitHub Secrets, ikke i workflow-filen.
 
 Leveranser: workflow-fil, lenke til grønn kjøring, begrunnelse av tagging-strategi i `README_SVAR.md`.
 
@@ -64,6 +66,10 @@ Leveranser: workflow-fil, lenke til grønn kjøring, begrunnelse av tagging-stra
 Grunderen har så langt kjørt applikasjonen på en EC2-instans han manuelt setter opp i konsollet. Når én utvikler blir fem, holder ikke dét lenger — infrastrukturen må være kode, revisjonskontrollert, og mulig å gjenskape fra scratch.
 
 I denne oppgaven skal dere flytte tjenesten over på **ECS Express**, Amazons forenklede container-tjeneste som gir dere "serverløse" containere og lastbalansering uten alt det manuelle oppsettet av nettverk og infrastrultur.
+
+Nyttige referanser:
+- AWS ECS Express Mode (konsepter, defaults, hva som opprettes): <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/express-service-overview.html>
+- Terraform-ressursen: <https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_express_gateway_service>
 
 #### 2A — Infrastruktur for tjenesten
 
