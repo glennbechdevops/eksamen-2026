@@ -66,9 +66,9 @@ Workflowen skal **kun kjøre ved push til `main`**.
 
 Dere velger selv en fornuftig tagging-strategi. `latest` alene er ikke tilstrekkelig — commit-SHA, versjon, eller tilsvarende må være med slik at det er mulig å spore hva som faktisk kjører hvor. Begrunn valget kort i `README_SVAR.md`.
 
-ECR-repoet kan opprettes manuelt. Secrets skal ligge som GitHub Secrets, ikke i workflow-filen.
+ECR-repoet kan opprettes manuelt med CLI eller i AWS Console. Aksessnøkler skal ligge som GitHub Secrets, ikke i workflow-filen! (Please!)
 
-Leveranser: workflow-fil, lenke til grønn kjøring, begrunnelse av tagging-strategi i `README_SVAR.md`.
+Leveranser: workflow-fil i repo, lenke til grønn kjøring, begrunnelse av tagging-strategi i `README_SVAR.md`.
 
 ### Oppgave 2 — ECS Express med Terraform (25p)
 
