@@ -11,37 +11,49 @@ hva slags objekter som finnes på bildet. Dette mates inn i et AWS Bedrock-promp
 
 Din oppgave er å gjøre løsningen produksjonsklar: containerisere, deploye med Terraform, overvåke og sikre.
 
+### Litt om Rekognition og Bedrock
+
+**AWS Rekognition** er en ferdigtrent "computer vision"-tjeneste. Du sender inn et bilde, og får tilbake en liste med labels — f.eks. `Sofa (98%)`, `Lamp (87%)`, `Child (72%)` — pluss tekst, ansikter og objekter den gjenkjenner. Wishifai bruker labelene som input til neste steg.
+
+**AWS Bedrock** er AWS sin administrerte tjeneste for store språkmodeller (Claude, Llama, Titan m.fl.). Wishifai bygger en prompt av Rekognition-labelene ("foreslå gaver basert på disse objektene i rommet …") og lar en LLM via Bedrock generere selve gavelisten. Bedrock er altså det som gjør tjenesten "AI-drevet" — og samtidig ikke-deterministisk, kostnadsvariabel og vanskelig å teste tradisjonelt. Det er temaer dere kommer tilbake til i oppgave 3, 4 og 5.
+
+
 ## Levering
 
 - Opprett et **nytt** GitHub-repository (ikke fork). Kopier inn innholdet herfra.
-- Besvar oppgavene i `README_SVAR.md` i ditt eget repo.
+- Besvar oppgavene i en fil du kaller `README_SVAR.md` i ditt eget repo.
 - Lever repo-URL som PDF/TXT i Wiseflow.
 
-Alle ressursnavn i AWS skal suffikses med kandidatnummer for å unngå navnekollisjoner.
+## Utviklingsmiljø
+
+Hele eksamen er løsbar i et **GitHub Codespace**, slik dere er vant til fra lab-ene.
+
+Dette repoet inneholder en ferdig `.devcontainer/`-konfigurasjon med alle verktøyene som trengs forhåndsinstallert: Java 21, Maven, Docker, AWS CLI og Terraform. Hvis du vil bruke Codespaces kan du kopiere filen fra .devcontainer kappen i dette repoet til ditt eget.
+
+Dere må selv konfigurere Codespaces med AWS nøkler som vanlig.
 
 ## Oppgaver
 
 Totalt 100 poeng. Flere oppgaver gir rom for egne valg — begrunn valgene dine i `README_SVAR.md`.
 
+Før du går videre bør du teste at Spring Boot-applikasjonen fungerer som forventet.
+
+Start applikasjonen, og send inn et bilde med `curl` fra en annen terminal (fra repo-rot). Eksempelet under fungerer på Mac, Linux og i Codespaces:
+
+```
+curl -F "image=@samples/sample_image.png" http://localhost:8080/api/analyze
+```
+Som respons på et bilde får du et JSON objekt som inneholder gaveønsker og begrunnelse for valgene som er gjort
+
 ### Oppgave 1 — Container og CI (20p)
 
 I denne oppgaven skal dere gjøre kodebasen klar for et større utviklingsteam, og sørge for at gode DevOps-praksiser blir fulgt.
 
-#### 1A — Containerisér uploader-programmet
 
-Grunder har en utfordring med at en student, fascinert av Golang- på sommerjobb har skrvet et test-program som laster opp bildefiler. Siden han ikke har noe ønske
-om å lære seg nok et programmeringspråk, eller å installere golang på sin PC, blir det deres jobb å skrive en Dockerfile som
-kompilerer og kjører Go koden
 
-Mappen `uploader/` inneholder et Go-program som POSTer en bildefil til en URL. Skriv en `Dockerfile` som produserer et image sensor kan kjøre for å teste tjenesten ende-til-ende:
 
-```
-docker run <image:tag> http://localhost:8080/ sample_image.jpg
-```
 
-Leveranser: `uploader/Dockerfile`, `docker run …`-kommando sensor kan kjøre.
-
-#### 1B — Containerisér Spring Boot-applikasjonen
+#### 1A — Containerisér Spring Boot-applikasjonen
 
 Dere skal lage en multi-stage `Dockerfile` for Spring Boot-applikasjonen. Grunderen har hittil deployet ved å zippe JAR-filen og scp-e den opp til en EC2-instans fra MacBooken sin. Det er dagens-gang-i-staur-territorium — vi skal gjøre dette ordentlig.
 
@@ -49,11 +61,11 @@ Multi-stage build betyr at build-verktøyene (Maven, JDK, kildekode) ikke henger
 
 Leveranser: `Dockerfile`, `docker run …`-kommando sensor kan kjøre mot ditt publiserte image.
 
-#### 1C — CI-pipeline
+#### 1B — CI-pipeline
 
 Dere skal sette opp en GitHub Actions-workflow som bygger Wishifai Spring Boot-containeren og publiserer den til **både ECR og Docker Hub**. ECR brukes senere i oppgave 2 når tjenesten skal kjøre på AWS; Docker Hub gjør det enkelt for sensor å trekke og teste imaget lokalt.
 
-Workflowen skal **kun kjøre ved push til `main`**. Uploader-containeren fra 1A trenger ingen pipeline — den bygges lokalt ved behov.
+Workflowen skal **kun kjøre ved push til `main`**.
 
 Dere velger selv en fornuftig tagging-strategi. `latest` alene er ikke tilstrekkelig — commit-SHA, versjon, eller tilsvarende må være med slik at det er mulig å spore hva som faktisk kjører hvor. Begrunn valget kort i `README_SVAR.md`.
 
@@ -75,6 +87,13 @@ Nyttige referanser:
 
 All Terraform-kode skal ligge i en mappe `infra/` i repoet. Tjenesten skal eksponere et offentlig endepunkt sensor kan curle. Bruk variabler for det som skal kunne endres (region, kandidatnummer, image-tag), og eksponér nyttige verdier via `outputs` — minimum selve URL-en.
 
+**IAM-roller:** For å unngå rolleksplosjon i klassens AWS-konto, bruk de eksisterende rollene nedenfor i stedet for å opprette nye. Begge finnes allerede i kontoen og kan refereres direkte:
+
+- **Execution role:** `arn:aws:iam::244530008913:role/ecsTaskExecutionRole`
+- **Infrastructure role:** `arn:aws:iam::244530008913:role/service-role/ecsInfrastructureRoleForExpressServices`
+
+For at tjenesten faktisk skal kunne kalle Rekognition, Bedrock og S3 trenger task-en en egen **task role** (ikke task execution role). Opprett én slik rolle i Terraform, suffikset med kandidatnummer, med nødvendige tillatelser.
+
 Leveranser: Terraform-kode i `infra/`, offentlig URL til tjenesten.
 
 #### 2B — Remote state
@@ -92,6 +111,8 @@ Grunderen oppdaget nylig at tjenesten hadde vært nede i tre dager før en kunde
 #### 3A — Metrikker i applikasjonen
 
 Dere skal instrumentere Spring Boot-applikasjonen med **Micrometer** og eksportere metrikkene til CloudWatch.
+
+Applikasjonen har allerede nødvendige biblioteker på classpath (`micrometer-registry-cloudwatch2` + AWS CloudWatch SDK) og en ferdig `MetricsConfig`-klasse som wirer opp `CloudWatchMeterRegistry`. Dere trenger altså ikke sette opp selve CloudWatch-koblingen — fokus skal være på å *bruke* Micrometer til å måle det som er relevant.
 
 Som et minimum skal følgende måles og publiseres som egne metrikker:
 
@@ -145,13 +166,7 @@ Dere skal skrive en refleksjon på **800–1000 ord** i `README_SVAR.md` om hva 
 
 Bruk konkrete eksempler fra din egen besvarelse. En generell "DevOps er viktig"-essay gir ikke uttelling.
 
-## Utviklingsmiljø
 
-Hele eksamen er løsbar i en **GitHub Codespace**, slik dere er vant til fra lab-ene. Repoet inneholder en ferdig `.devcontainer/`-konfigurasjon med alle verktøyene som trengs forhåndsinstallert: Java 21, Maven, Go, Docker, AWS CLI og Terraform.
-
-Klikk `Code → Codespaces → Create codespace on main` på GitHub, så er dere i gang. Port 8080 blir automatisk eksponert for testing. Dere står fritt til å utvikle lokalt hvis dere foretrekker det.
-
-AWS-credentials sendes på e-post på eksamensdagen.
 
 ## Vurdering
 
