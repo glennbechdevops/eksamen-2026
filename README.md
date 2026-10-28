@@ -15,7 +15,7 @@ Din oppgave er å gjøre løsningen produksjonsklar: containerisere, deploye med
 
 **AWS Rekognition** er en ferdigtrent "computer vision"-tjeneste. Du sender inn et bilde, og får tilbake en liste med labels — f.eks. `Sofa (98%)`, `Lamp (87%)`, `Child (72%)` — pluss tekst, ansikter og objekter den gjenkjenner. Wishifai bruker labelene som input til neste steg.
 
-**AWS Bedrock** er AWS sin administrerte tjeneste for store språkmodeller (Claude, Llama, Titan m.fl.). Wishifai bygger en prompt av Rekognition-labelene ("foreslå gaver basert på disse objektene i rommet …") og lar en LLM via Bedrock generere selve gavelisten. Bedrock er altså det som gjør tjenesten "AI-drevet" — og samtidig ikke-deterministisk, kostnadsvariabel og vanskelig å teste tradisjonelt. Det er temaer dere kommer tilbake til i oppgave 3, 4 og 5.
+**AWS Bedrock** er AWS sin administrerte tjeneste for store språkmodeller (Claude, Llama, Titan m.fl.). Wishifai bygger en prompt av Rekognition-labelene ("foreslå gaver basert på disse objektene i rommet …") og lar en LLM via Bedrock generere selve gavelisten. Bedrock er altså det som gjør tjenesten "AI-drevet" — og samtidig ikke-deterministisk, kostnadsvariabel og vanskelig å teste tradisjonelt. Det er temaer dere kommer tilbake til i oppgave 3 og 4.
 
 
 ## Levering
@@ -28,13 +28,13 @@ Din oppgave er å gjøre løsningen produksjonsklar: containerisere, deploye med
 
 Hele eksamen er løsbar i et **GitHub Codespace**, slik dere er vant til fra lab-ene.
 
-Dette repoet inneholder en ferdig `.devcontainer/`-konfigurasjon med alle verktøyene som trengs forhåndsinstallert: Java 21, Maven, Docker, AWS CLI og Terraform. Hvis du vil bruke Codespaces kan du kopiere filen fra .devcontainer kappen i dette repoet til ditt eget.
+Dette repoet inneholder en ferdig `.devcontainer/`-konfigurasjon med alle verktøyene som trengs forhåndsinstallert: Java 21, Maven, Docker, AWS CLI og Terraform. Hvis du vil bruke Codespaces kan du kopiere filen fra .devcontainer mappen i dette repoet til ditt eget.
 
 Dere må selv konfigurere Codespaces med AWS nøkler som vanlig.
 
 ## Oppgaver
 
-Totalt 100 poeng. Flere oppgaver gir rom for egne valg — begrunn valgene dine i `README_SVAR.md`.
+Totalt 80 poeng. Flere oppgaver gir rom for egne valg — begrunn valgene dine i `README_SVAR.md`.
 
 Før du går videre bør du teste at Spring Boot-applikasjonen fungerer som forventet.
 
@@ -97,13 +97,23 @@ Leveranser: Terraform-kode i `infra/`, offentlig URL til tjenesten.
 
 Terraform-state skal lagres i en **S3 backend**, ikke lokalt. Dette er grunnlaget for at flere utviklere kan jobbe mot samme infrastruktur uten å overskrive hverandre.
 
-Bruk den delte bucketen **`pgr301-terraform-state`** i klassens AWS-konto. Velg en nøkkel som gir unikhet pr. kandidat, f.eks. `wishifai/<kandidatnummer>/terraform.tfstate`. Dokumentér valgt nøkkel i `README_SVAR.md`.
+Bruk den delte bucketen **`pgr301-terraform-state`** i klassens AWS-konto. Velg et filavn som gir unikhet pr. kandidat, f.eks. `wishifai/<kandidatnummer>/terraform.tfstate`. Dokumentér valgt nøkkel i `README_SVAR.md`.
 
 Leveranser: `backend`-konfigurasjon i Terraform-koden som peker på `pgr301-terraform-state`.
 
+#### 2C — GitHub Actions-job for Terraform
+
+Dere skal utvide workflow-filen fra oppgave 1B med en ny job som kjører Terraform. Jobben skal ligge i **samme workflow-fil** som container-byggejobben, og skal være **avhengig av** (`needs:`) jobben som bygger og publiserer containeren. Rekkefølgen må altså være: først bygg og push image til ECR, deretter kjør Terraform mot den nye image-taggen.
+
+Terraform-jobben skal minst kjøre `terraform init` og `terraform apply` mot `infra/`-mappen. AWS-credentials skal hentes fra GitHub Secrets på samme måte som i 1B.
+
+Begrunn kort i `README_SVAR.md` hvorfor det er fornuftig at Terraform kjører *etter* container-build, og ikke parallelt eller før.
+
+Leveranser: oppdatert workflow-fil med to jobs i riktig rekkefølge, lenke til grønn kjøring.
+
 ### Oppgave 3 — Observability (20p)
 
-Grunderen oppdaget nylig at tjenesten hadde vært nede i tre dager før en kunde ringte for å spørre. Ingen varslet ham, og det eneste han har å gå på i ettertid er `System.out.println`-logger. Vi må kunne se hvordan systemet oppfører seg uten å ringe det.
+Grunderen oppdaget nylig at tjenesten svarer veldig langsomt -og er redd for at dette skal være en deal-braker for potensielle investorer. Det blir derfor din jobb å finne ut av hvor tiden blir av.
 
 #### 3A — Metrikker i applikasjonen
 
@@ -117,13 +127,11 @@ Som et minimum skal følgende måles og publiseres som egne metrikker:
 - Tiden det tar å kjøre **Bedrock**-kallet
 - Minst én **business-metrikk** — noe som sier noe om bruken av tjenesten, ikke bare teknisk helse. Eksempler: antall gaveforslag generert, antall bilder analysert pr. kategori (stue/barnerom/garasje), gjennomsnittlig antall forslag pr. prompt. Dere velger selv — begrunn valget.
 
-Hvorfor Rekognition og Bedrock separat: når brukerne klager på at tjenesten er treg, må dere kunne svare på *hvor* tiden går. Et felles "latency total" er lite verdt når det er to eksterne tjenester som gjør grovjobben.
-
 I tillegg står dere fritt til å legge til flere metrikker (`Counter`, `Gauge`, `DistributionSummary`) der det gir reell innsikt.
 
 Beskriv kort i `README_SVAR.md` hvilke metrikker dere valgte og hvorfor.
 
-#### 3B — Dashboard, alarm og Terraform-modul
+#### 3B — Dashboard og alarm
 
 Dashboard og alarm skal defineres som kode i `infra/`. Dashbordet skal gi et helhetlig bilde av tjenesten og skal vise en **miks av tre typer metrikker**:
 
@@ -131,38 +139,17 @@ Dashboard og alarm skal defineres som kode i `infra/`. Dashbordet skal gi et hel
 - **Infrastruktur:** metrikker fra ECS Express (f.eks. CPU-utilization, memory-utilization, running task count)
 - **Applikasjon:** metrikker eksponert via Spring Boot Actuator (f.eks. JVM memory, HTTP request-latency, GC-tid)
 
-Minst én CloudWatch Alarm skal være knyttet til en av dine egne metrikker.
+Minst én CloudWatch Alarm som skal være knyttet til en av dine egne metrikker.
 
-I denne oppgaven skal det også ligge minst **én egen Terraform-modul** (f.eks. `modules/dashboard/`) som kalles fra `main.tf`. Hensikten er å øve på gjenbrukbar infrastruktur, ikke å ha moduler for modulens egen skyld.
+Leveranser: Terraform-kode, screenshot av- eller navn på dashboard med reelle data, kort begrunnelse av metrikkene.
 
-Leveranser: Terraform-kode, screenshot av dashboard med reelle data, kort begrunnelse av metrikkene.
+### Oppgave 4 — Drøfteoppgave (15p)
 
-### Oppgave 4 — Responsible AI (20p)
+En LLM kan generere anbefalinger som er upassende, misvisende eller potensielt skadelige, selv om applikasjonen fungerer teknisk som forventet. WishifAI kan for eksempel foreslå farlige eller aldersupassende gaver.
 
-Grunderen fikk nylig en e-post fra en bruker som hadde lastet opp bilder av barnebarna sine. Tjenesten foreslo en gaveliste, men svaret inneholdt også detaljerte observasjoner om barna — estimert alder, antatt kjønn, utseende — rett fra det Rekognition hadde funnet. Grunderen svarte "beklager, vi tar det til etterretning" og gjør absolutt ingenting.
+Konsekvensene av slike feil er vanligvis begrensede i en gaveønskeapplikasjon. Situasjonen ville imidlertid vært annerledes dersom applikasjonen ga medisinske eller juridiske råd, der feilaktige svar kan få alvorlige konsekvenser.
 
-Vi skal gjøre noe.
-
-#### 4A — Guardrail som kode
-
-Dere skal konfigurere en **AWS Bedrock Guardrail** med Terraform. Policyen skal minst dekke PII (navn, adresser, kontonummer, bilnummerskilt) og **prompt-injection**. Grunnen til at prompt-injection er relevant: Rekognition-labels går inn i prompt-strengen uten sanering. En angriper kan skrive instruksjoner på et bilde, Rekognition fanger opp teksten som label, og instruksjonen havner i LLM-ens kontekst.
-
-Policyen skal være knyttet til applikasjonens Bedrock-kall ved at `guardrailIdentifier` og `guardrailVersion` sendes med i invokasjonen — det holder ikke bare å ha den definert i Terraform.
-
-Nyttige referanser:
-- Terraform-ressursen: <https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrock_guardrail>
-- AWS Bedrock Guardrails (konsepter, policy-typer, eksempler): <https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html>
-
-Leveranser: Terraform-kode, to screenshots (ett blokkert og ett tillatt kall), og en begrunnelse på 200–300 ord i `README_SVAR.md` som forklarer hvilke policy-valg du gjorde og hvorfor de er fornuftige for *dette* scenariet.
-
-### Oppgave 5 — Drøfteoppgave (15p)
-
-En tradisjonell webapplikasjon er — med litt arbeid — deterministisk, testbar og enkel å regne på. En tjeneste som delegerer kjernefunksjonaliteten til en LLM, slik Wishifai gjør, er det ikke. Samme input gir ikke samme output, kvalitet er vanskelig å måle, og kostnaden varierer per request.
-
-Dere skal skrive en refleksjon på **800–1000 ord** i `README_SVAR.md` om hva som er annerledes med DevOps-praksis for LLM-baserte tjenester sammenlignet med tradisjonelle webapplikasjoner. Mulige vinklinger: testing og evaluering av ikke-deterministisk oppførsel, prompt-versjonering som en del av CI/CD, cost- og token-observability, hvordan guardrails fungerer som en governance-mekanisme i leveransemodellen, hallusinering som et driftsproblem.
-
-Bruk konkrete eksempler fra din egen besvarelse. En generell "DevOps er viktig"-essay gir ikke uttelling.
-
+Drøft hvordan bruk av generativ AI påvirker DevOps-praksiser knyttet til områdene testing, kontinuerlig leveranse og overvåking. Hvordan bør disse praksisene tilpasses applikasjonens risikonivå for å sikre ansvarlig bruk av AI?
 
 
 ## Vurdering
@@ -172,8 +159,7 @@ Bruk konkrete eksempler fra din egen besvarelse. En generell "DevOps er viktig"-
 | 1 Container og CI | 20 |
 | 2 ECS Express og IaC | 25 |
 | 3 Observability | 20 |
-| 4 Responsible AI | 20 |
-| 5 Drøfteoppgave | 15 |
-| **Totalt** | **100** |
+| 4 Drøfteoppgave | 15 |
+| **Totalt** | **80** |
 
 Hvis du velger å ikke besvare en oppgave, nevn det i `README_SVAR.md`.
