@@ -59,7 +59,7 @@ Dere skal lage en multi-stage `Dockerfile` for Spring Boot-applikasjonen. Grunde
 
 Multi-stage build betyr at build-verktøyene (Maven, JDK, kildekode) ikke henger med inn i det endelige imaget. Resultatet er mindre, raskere, og eksponerer færre avhengigheter enn nødvendig.
 
-Leveranser: `Dockerfile`, `docker run …`-kommando sensor kan kjøre mot ditt publiserte image.
+Leveranser: `Dockerfile`, `docker run …`-kommando sensor kan kjøre for å starte en container som lytter på localhost:9999
 
 #### 1B — CI-pipeline
 
