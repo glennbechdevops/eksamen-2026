@@ -50,9 +50,6 @@ Som respons på et bilde får du et JSON objekt som inneholder gaveønsker og be
 I denne oppgaven skal dere gjøre kodebasen klar for et større utviklingsteam, og sørge for at gode DevOps-praksiser blir fulgt.
 
 
-
-
-
 #### 1A — Containerisér Spring Boot-applikasjonen
 
 Dere skal lage en multi-stage `Dockerfile` for Spring Boot-applikasjonen. Grunderen har hittil deployet ved å zippe JAR-filen og scp-e den opp til en EC2-instans fra MacBooken sin. Det er dagens-gang-i-staur-territorium — vi skal gjøre dette ordentlig.
@@ -63,7 +60,7 @@ Leveranser: `Dockerfile`, `docker run …`-kommando sensor kan kjøre for å sta
 
 #### 1B — CI-pipeline
 
-Dere skal sette opp en GitHub Actions-workflow som bygger Wishifai Spring Boot-containeren og publiserer den til **både ECR og Docker Hub**. ECR brukes senere i oppgave 2 når tjenesten skal kjøre på AWS; Docker Hub gjør det enkelt for sensor å trekke og teste imaget lokalt.
+Dere skal sette opp en GitHub Actions-workflow som bygger Wishifai Spring Boot-containeren og publiserer den til **ECR**. ECR brukes senere i oppgave 2 når tjenesten skal kjøre på AWS; Docker Hub gjør det enkelt for sensor å trekke og teste imaget lokalt.
 
 Workflowen skal **kun kjøre ved push til `main`**.
 
