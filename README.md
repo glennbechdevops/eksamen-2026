@@ -82,7 +82,7 @@ Nyttige referanser:
 
 #### 2A — Infrastruktur for tjenesten
 
-All Terraform-kode skal ligge i en mappe `infra/` i repoet. Tjenesten skal eksponere et offentlig endepunkt sensor kan curle. Bruk variabler for det som skal kunne endres (region, kandidatnummer, image-tag), og eksponér nyttige verdier via `outputs` — minimum selve URL-en.
+All Terraform-kode skal ligge i en mappe `infra/` i repoet. Tjenesten skal eksponere et offentlig endepunkt sensor kan teste. Bruk variabler for det som skal kunne endres (region, kandidatnummer, image-tag), og eksponér nyttige verdier via `outputs` — minimum selve URL-en.
 
 **IAM-roller:** For å unngå rolleksplosjon i klassens AWS-konto, bruk de eksisterende rollene nedenfor i stedet for å opprette nye. Begge finnes allerede i kontoen og kan refereres direkte:
 
