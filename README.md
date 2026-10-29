@@ -21,6 +21,7 @@ Din oppgave er å gjøre løsningen produksjonsklar: containerisere, deploye med
 ## Krav til levering i Wiseflow
 
 - Opprett et **nytt** GitHub-repository (ikke fork). Kopier inn innholdet herfra.
+- For å unngå at andre studenter ser din besvarelse, kan du gjerne jobbe i et privat repository. Gjør repositoryet offentlig rett før innleveringsfristen.
 - Flere oppgaver gir rom for egne valg — begrunn valgene dine og besvar oppgavene i en fil du kaller `README_SVAR.md` i ditt eget repo.
 - Lever repo-URL som PDF/TXT i Wiseflow.
 
