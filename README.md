@@ -55,7 +55,9 @@ Start applikasjonen, og send inn et bilde med `curl` fra en annen terminal (fra 
 ```
 curl -F "image=@samples/sample_image.png" http://localhost:8080/api/analyze
 ```
+
 Som respons på et bilde får du et JSON-objekt som inneholder gaveønsker og begrunnelse for valgene som er gjort.
+NB.  Før du har gjort oppgave 3 får du feilmeldinger fra Spring Boot applikasjonen. 
 
 ### Oppgave 1 — Container og CI (20p)
 
