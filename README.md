@@ -94,7 +94,7 @@ Nyttige referanser:
 
 #### 2A — Infrastruktur for tjenesten
 
-Lag Terraform-kode for en ECS Express tjeneste og S3 bucket for lagring av bilder for din applikasjon. 
+Lag Terraform-kode for **minst** en ECS Express tjeneste og S3 bucket for lagring av bilder for din applikasjon. 
 
 All Terraform-kode skal ligge i en mappe `infra/` i repoet. Tjenesten skal eksponere et offentlig endepunkt sensor kan teste. Bruk variabler for det som skal kunne endres (region, kandidatnummer, image-tag), og eksponér nyttige verdier via `outputs` — minimum selve URL-en.
 
@@ -105,7 +105,7 @@ All Terraform-kode skal ligge i en mappe `infra/` i repoet. Tjenesten skal ekspo
 
 For at tjenesten faktisk skal kunne kalle Rekognition, Bedrock og S3 trenger task-en en egen **task role** (ikke task execution role). Opprett én slik rolle i Terraform, suffikset med kandidatnummer, med nødvendige tillatelser.
 
-Hvis dere ser i `application.properties` så leser applikasjonen en miljø-variabel som heter S3_BUCKET. 
+Hvis dere ser i `application.properties` så leser applikasjonen en miljø-variabel som heter S3_BUCKET. Denne bestemmer bucket-navn for opplasting av bilder. Pass på at denne verdien automatisk blir satt i Terraform koden.  
 
 Leveranser: Terraform-kode i `infra/`, offentlig URL til tjenesten.
 
