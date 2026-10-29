@@ -7,7 +7,7 @@ Bare last opp et bilde av en stue, et barnerom eller garasjen til bestefar — W
 solo-grunderen, og han trenger nå sårt å få orden på utviklingsprosessen før han lanserer i desember 2026.
 
 Han har selv skrevet en Spring Boot-applikasjon som tar imot et bilde, laster det opp til S3, og bruker AWS Rekognition til å finne ut
-hva slags objekter som finnes på bildet. Dette mates inn i et AWS Bedrock-prompt, som igjen genererer en liste med mulige gaveønsker som kan passe.
+hva slags objekter som finnes på bildet. Dette mates inn i en AWS Bedrock-prompt, som igjen genererer en liste med mulige gaveønsker som kan passe.
 
 Din oppgave er å gjøre løsningen produksjonsklar: containerisere, deploye med Terraform, overvåke og sikre.
 
@@ -18,23 +18,34 @@ Din oppgave er å gjøre løsningen produksjonsklar: containerisere, deploye med
 **AWS Bedrock** er AWS sin administrerte tjeneste for store språkmodeller (Claude, Llama, Titan m.fl.). Wishifai bygger en prompt av Rekognition-labelene ("foreslå gaver basert på disse objektene i rommet …") og lar en LLM via Bedrock generere selve gavelisten. Bedrock er altså det som gjør tjenesten "AI-drevet" — og samtidig ikke-deterministisk, kostnadsvariabel og vanskelig å teste tradisjonelt. Det er temaer dere kommer tilbake til i oppgave 3 og 4.
 
 
-## Levering
+## Krav til levering i Wiseflow
 
 - Opprett et **nytt** GitHub-repository (ikke fork). Kopier inn innholdet herfra.
-- Besvar oppgavene i en fil du kaller `README_SVAR.md` i ditt eget repo.
+- Flere oppgaver gir rom for egne valg — begrunn valgene dine og besvar oppgavene i en fil du kaller `README_SVAR.md` i ditt eget repo.
 - Lever repo-URL som PDF/TXT i Wiseflow.
 
 ## Utviklingsmiljø
 
 Hele eksamen er løsbar i et **GitHub Codespace**, slik dere er vant til fra lab-ene.
 
-Dette repoet inneholder en ferdig `.devcontainer/`-konfigurasjon med alle verktøyene som trengs forhåndsinstallert: Java 21, Maven, Docker, AWS CLI og Terraform. Hvis du vil bruke Codespaces kan du kopiere filen fra .devcontainer mappen i dette repoet til ditt eget.
+Dette repoet inneholder en ferdig `.devcontainer/`-konfigurasjon med alle verktøyene som trengs forhåndsinstallert: Java 21, Maven, Docker, AWS CLI og Terraform. Hvis du vil bruke Codespaces kan du kopiere filen fra `.devcontainer`-mappen i dette repoet til ditt eget.
 
 Dere må selv konfigurere Codespaces med AWS nøkler som vanlig.
 
-## Oppgaver
 
-Totalt 80 poeng. Flere oppgaver gir rom for egne valg — begrunn valgene dine i `README_SVAR.md`.
+## Vurdering
+
+| Oppgave | Poeng |
+|---------|-------|
+| 1 Container og CI | 20 |
+| 2 ECS Express og IaC | 25 |
+| 3 Observability | 20 |
+| 4 Drøfteoppgave | 15 |
+| **Totalt** | **80** |
+
+Hvis du velger å ikke besvare en oppgave, nevn det i `README_SVAR.md`.
+
+## Før du starter
 
 Før du går videre bør du teste at Spring Boot-applikasjonen fungerer som forventet.
 
@@ -43,7 +54,7 @@ Start applikasjonen, og send inn et bilde med `curl` fra en annen terminal (fra 
 ```
 curl -F "image=@samples/sample_image.png" http://localhost:8080/api/analyze
 ```
-Som respons på et bilde får du et JSON objekt som inneholder gaveønsker og begrunnelse for valgene som er gjort
+Som respons på et bilde får du et JSON-objekt som inneholder gaveønsker og begrunnelse for valgene som er gjort.
 
 ### Oppgave 1 — Container og CI (20p)
 
@@ -56,7 +67,7 @@ Dere skal lage en multi-stage `Dockerfile` for Spring Boot-applikasjonen. Grunde
 
 Multi-stage build betyr at build-verktøyene (Maven, JDK, kildekode) ikke henger med inn i det endelige imaget. Resultatet er mindre, raskere, og eksponerer færre avhengigheter enn nødvendig.
 
-Leveranser: `Dockerfile`, `docker run …`-kommando sensor kan kjøre for å starte en container som lytter på localhost:9999
+Leveranser: `Dockerfile`, `docker run …`-kommando som sensor kan kjøre for å starte en container som lytter på localhost:9999.
 
 #### 1B — CI-pipeline
 
@@ -72,9 +83,9 @@ Leveranser: workflow-fil i repo, lenke til grønn kjøring, begrunnelse av taggi
 
 ### Oppgave 2 — ECS Express med Terraform (25p)
 
-Grunderen har så langt kjørt applikasjonen på en EC2-instans han manuelt setter opp i konsollet. Når én utvikler blir fem, holder ikke dét lenger — infrastrukturen må være kode, revisjonskontrollert, og mulig å gjenskape fra scratch.
+Grunderen har så langt kjørt applikasjonen på en EC2-instans han manuelt setter opp i konsollen. Når én utvikler blir fem, holder ikke dét lenger — infrastrukturen må være kode, revisjonskontrollert, og mulig å gjenskape fra scratch.
 
-I denne oppgaven skal dere flytte tjenesten over på **ECS Express**, Amazons forenklede container-tjeneste som gir dere "serverløse" containere og lastbalansering uten alt det manuelle oppsettet av nettverk og infrastrultur.
+I denne oppgaven skal dere flytte tjenesten over på **ECS Express**, Amazons forenklede container-tjeneste som gir dere "serverløse" containere og lastbalansering uten alt det manuelle oppsettet av nettverk og infrastruktur.
 
 Nyttige referanser:
 - AWS ECS Express Mode (konsepter, defaults, hva som opprettes): <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/express-service-overview.html>
@@ -97,7 +108,7 @@ Leveranser: Terraform-kode i `infra/`, offentlig URL til tjenesten.
 
 Terraform-state skal lagres i en **S3 backend**, ikke lokalt. Dette er grunnlaget for at flere utviklere kan jobbe mot samme infrastruktur uten å overskrive hverandre.
 
-Bruk den delte bucketen **`pgr301-terraform-state`** i klassens AWS-konto. Velg et filavn som gir unikhet pr. kandidat, f.eks. `wishifai/<kandidatnummer>/terraform.tfstate`. Dokumentér valgt nøkkel i `README_SVAR.md`.
+Bruk den delte bucketen **`pgr301-terraform-state`** i klassens AWS-konto. Velg et filnavn som gir unikhet pr. kandidat, f.eks. `wishifai/<kandidatnummer>/terraform.tfstate`. Dokumentér valgt nøkkel i `README_SVAR.md`.
 
 Leveranser: `backend`-konfigurasjon i Terraform-koden som peker på `pgr301-terraform-state`.
 
@@ -107,19 +118,23 @@ Dere skal utvide workflow-filen fra oppgave 1B med en ny job som kjører Terrafo
 
 Terraform-jobben skal minst kjøre `terraform init` og `terraform apply` mot `infra/`-mappen. AWS-credentials skal hentes fra GitHub Secrets på samme måte som i 1B.
 
+Pipelinen skal også feile dersom Terraform-koden ikke er riktig formatert.
+
 Begrunn kort i `README_SVAR.md` hvorfor det er fornuftig at Terraform kjører *etter* container-build, og ikke parallelt eller før.
 
 Leveranser: oppdatert workflow-fil med to jobs i riktig rekkefølge, lenke til grønn kjøring.
 
 ### Oppgave 3 — Observability (20p)
 
-Grunderen oppdaget nylig at tjenesten svarer veldig langsomt -og er redd for at dette skal være en deal-braker for potensielle investorer. Det blir derfor din jobb å finne ut av hvor tiden blir av.
+Grunderen oppdaget nylig at tjenesten svarer veldig langsomt — og er redd for at dette skal være en deal-breaker for potensielle investorer. Det blir derfor din jobb å finne ut hvor tiden blir av.
 
 #### 3A — Metrikker i applikasjonen
 
 Dere skal instrumentere Spring Boot-applikasjonen med **Micrometer** og eksportere metrikkene til CloudWatch.
 
 Applikasjonen har allerede nødvendige biblioteker på classpath (`micrometer-registry-cloudwatch2` + AWS CloudWatch SDK) og en ferdig `MetricsConfig`-klasse som wirer opp `CloudWatchMeterRegistry`. Dere trenger altså ikke sette opp selve CloudWatch-koblingen — fokus skal være på å *bruke* Micrometer til å måle det som er relevant.
+
+Det er lov å utvide applikasjonen med mer funksjonalitet dersom det er hensiktsmessig for å illustrere bruk av metrikker.
 
 Som et minimum skal følgende måles og publiseres som egne metrikker:
 
@@ -139,27 +154,31 @@ Dashboard og alarm skal defineres som kode i `infra/`. Dashbordet skal gi et hel
 - **Infrastruktur:** metrikker fra ECS Express (f.eks. CPU-utilization, memory-utilization, running task count)
 - **Applikasjon:** metrikker eksponert via Spring Boot Actuator (f.eks. JVM memory, HTTP request-latency, GC-tid)
 
-Minst én CloudWatch Alarm som skal være knyttet til en av dine egne metrikker.
+Minst én CloudWatch Alarm skal være knyttet til en av dine egne metrikker.
 
-Leveranser: Terraform-kode, screenshot av- eller navn på dashboard med reelle data, kort begrunnelse av metrikkene.
+Leveranser: Terraform-kode, screenshot av eller navn på dashboard med reelle data, kort begrunnelse av metrikkene og kort begrunnelse av alarmen (hva den varsler på og hvorfor).
 
 ### Oppgave 4 — Drøfteoppgave (15p)
 
-En LLM kan generere anbefalinger som er upassende, misvisende eller potensielt skadelige, selv om applikasjonen fungerer teknisk som forventet. WishifAI kan for eksempel foreslå farlige eller aldersupassende gaver.
+En LLM kan generere anbefalinger som er upassende, misvisende eller potensielt skadelige, selv om applikasjonen fungerer teknisk som forventet. Wishifai kan for eksempel foreslå farlige eller aldersupassende gaver.
 
 Konsekvensene av slike feil er vanligvis begrensede i en gaveønskeapplikasjon. Situasjonen ville imidlertid vært annerledes dersom applikasjonen ga medisinske eller juridiske råd, der feilaktige svar kan få alvorlige konsekvenser.
 
 Drøft hvordan bruk av generativ AI påvirker DevOps-praksiser knyttet til områdene testing, kontinuerlig leveranse og overvåking. Hvordan bør disse praksisene tilpasses applikasjonens risikonivå for å sikre ansvarlig bruk av AI?
 
+Besvarelsen skal være på **300–500 ord**.
 
-## Vurdering
+Noen vinkler du kan bruke som utgangspunkt (du trenger ikke dekke alle):
 
-| Oppgave | Poeng |
-|---------|-------|
-| 1 Container og CI | 20 |
-| 2 ECS Express og IaC | 25 |
-| 3 Observability | 20 |
-| 4 Drøfteoppgave | 15 |
-| **Totalt** | **80** |
+- **Testing:** Hvordan må man tenke annerledes om test når output er ikke-deterministisk? Hva slags tester gir mening (f.eks. eval-sets, snapshot/regresjon, "LLM-as-judge", stikkprøver), og hvor passer de i pipelinen?
+- **Kontinuerlig leveranse:** Hva "deployer" man egentlig når prompt, modellversjon og systemprompt kan endres uavhengig av koden? Hvordan versjonere og rulle tilbake prompts/modeller? Når bør man bruke feature flags, canary eller A/B?
+- **Overvåking:** Hvilke signaler er viktige utover latency og feilrater — f.eks. token-forbruk/kostnad, andel refusals, lengde på svar, drift i input/output over tid? Hvordan oppdager man kvalitetsregresjon i produksjon?
+- **Risiko og ansvar:** Hvordan skalerer disse praksisene med konsekvensene av feil (gaveliste vs. medisinsk/juridisk rådgivning)? Hva bør være "gates" før prod, og hva kan man leve med å oppdage i prod?
+- **Menneske-i-loopen:** Når holder automatiserte tester, og når må mennesker inn (review av prompt-endringer, godkjenning av modellbytte, håndtering av rapporterte feil)?
+- **Egen besvarelse:** Bruk gjerne konkrete eksempler fra din egen Wishifai-løsning (f.eks. hva din CloudWatch-alarm fra oppgave 3 ikke fanger opp).
 
-Hvis du velger å ikke besvare en oppgave, nevn det i `README_SVAR.md`.
+---
+
+Lykke til og ha det moro!
+
+
