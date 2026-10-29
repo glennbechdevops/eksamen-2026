@@ -162,7 +162,7 @@ Leveranser: Terraform-kode, screenshot av eller navn på dashboard med reelle da
 
 En LLM kan generere anbefalinger som er upassende, misvisende eller potensielt skadelige, selv om applikasjonen fungerer teknisk som forventet. Wishifai kan for eksempel foreslå farlige eller aldersupassende gaver.
 
-Konsekvensene av slike feil er vanligvis begrensede i en gaveønskeapplikasjon. Situasjonen ville imidlertid vært annerledes dersom applikasjonen ga medisinske eller juridiske råd, der feilaktige svar kan få alvorlige konsekvenser.
+Konsekvensene av slike feil er selvfølgelig ikke veldig alvorlig i en gaveønskeapplikasjon. Situasjonen ville imidlertid vært annerledes dersom applikasjonen ga medisinske eller juridiske råd, der feilaktige svar kan få alvorlige konsekvenser. Tenkt en bank der kunderådgivere bruker AI, og at feil råd fører til økonomisk tap for kunden!
 
 Drøft hvordan bruk av generativ AI påvirker DevOps-praksiser knyttet til områdene testing, kontinuerlig leveranse og overvåking. Hvordan bør disse praksisene tilpasses applikasjonens risikonivå for å sikre ansvarlig bruk av AI?
 
