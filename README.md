@@ -94,12 +94,15 @@ Nyttige referanser:
 
 #### 2A — Infrastruktur for tjenesten
 
+Lag Terraform-kode for en ECS Express tjeneste, S3 bucket for lagring av data og en 
+
 All Terraform-kode skal ligge i en mappe `infra/` i repoet. Tjenesten skal eksponere et offentlig endepunkt sensor kan teste. Bruk variabler for det som skal kunne endres (region, kandidatnummer, image-tag), og eksponér nyttige verdier via `outputs` — minimum selve URL-en.
 
 **IAM-roller:** For å unngå rolleksplosjon i klassens AWS-konto, bruk de eksisterende rollene nedenfor i stedet for å opprette nye. Begge finnes allerede i kontoen og kan refereres direkte:
 
 - **Execution role:** `arn:aws:iam::244530008913:role/ecsTaskExecutionRole`
 - **Infrastructure role:** `arn:aws:iam::244530008913:role/service-role/ecsInfrastructureRoleForExpressServices`
+
 
 For at tjenesten faktisk skal kunne kalle Rekognition, Bedrock og S3 trenger task-en en egen **task role** (ikke task execution role). Opprett én slik rolle i Terraform, suffikset med kandidatnummer, med nødvendige tillatelser.
 
